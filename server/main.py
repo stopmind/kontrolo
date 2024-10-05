@@ -9,14 +9,17 @@ async def client_socket_endpoint(websocket: WebSocket):
     await websocket.accept()
     await websocket.receive()
     await websocket.send_text("""
-{
-    "command": "say-hi",
-    "data": "User"
-}    
+    {
+        "command": "processes-watcher-set-filter",
+        "data": {
+            "type": "blacklist",
+            "list": ["C:\\\\Windows\\\\System32\\\\cmd.exe"]
+        }
+    }
     """)
 
     await websocket.close()
     
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, ws="websockets")
+    uvicorn.run("main:app", ws="websockets")
