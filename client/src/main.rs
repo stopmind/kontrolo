@@ -1,23 +1,54 @@
-use log::{error, info, warn, LevelFilter};
+use std::path::Path;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::thread::sleep;
+use std::time::Duration;
+use log::{error, warn, LevelFilter};
+use serde::Deserialize;
 use crate::commands_executor::CommandsExecutor;
+use crate::processes_watcher::{BlacklistFilter, ProcessesFilter, ProcessesWatcher};
 use crate::server_api::ServerApi;
 
 mod commands_executor;
 mod server_api;
+mod processes_watcher;
+
+#[derive(Deserialize)]
+struct FilterInfo {
+    #[serde(rename="type")]
+    filter_type: String,
+    list: Vec<String>
+}
 
 fn main() {
     env_logger::builder()
         .filter_level(LevelFilter::Info)
         .init();
 
-    let mut executor = CommandsExecutor::new();
+    let processes_watcher = Arc::new(Mutex::new(ProcessesWatcher::new()));
 
-    executor.add_handler_with_data(String::from("say-hi"), &|string: String| {
-        println!("Hello, {}!", string);
+    thread::spawn({
+        let processes_watcher_loop = processes_watcher.clone();
+        move || {
+            loop {
+                sleep(Duration::from_micros(500));
+                processes_watcher_loop.lock().unwrap().check();
+            }
+        }
     });
 
-    executor.add_handler(String::from("connection-close"), &|| {
-        warn!("Server connection closed.");
+    let mut executor = CommandsExecutor::new();
+
+    executor.add_handler_with_data(String::from("processes-watcher-set-filter"), |info: FilterInfo| {
+        let mut watcher = processes_watcher.lock().unwrap();
+
+        match info.filter_type.as_str() {
+            "blacklist" => {
+                let paths = info.list.iter().map(|x| Box::from(Path::new(x))).collect();
+                watcher.set_filter(BlacklistFilter::new(paths))
+            }
+            t => warn!("Unknown filter type {}", t)
+        }
     });
 
     loop {
@@ -29,4 +60,5 @@ fn main() {
             }
         }
     }
+
 }

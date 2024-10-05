@@ -43,9 +43,9 @@ impl<'a> CommandsExecutor<'a> {
         }
     }
 
-    pub fn add_handler_with_data<T: DeserializeOwned>(&mut self, command: String, handler: &'a dyn Fn(T)) {
+    pub fn add_handler_with_data<T: DeserializeOwned>(&mut self, command: String, handler: impl Fn(T) + 'a) {
         self.commands_handler.add(command, Box::new(
-            |value: &mut Value| {
+            move |value: &mut Value| {
                 handler(serde_json::from_value(value.take())?);
                 Ok(())
             }
@@ -54,7 +54,7 @@ impl<'a> CommandsExecutor<'a> {
 
     pub fn add_handler(&mut self, command: String, handler: &'a dyn Fn()) {
         self.commands_handler.add(command, Box::new(
-            |value: &mut Value| {
+            |_: &mut Value| {
                 handler();
                 Ok(())
             }

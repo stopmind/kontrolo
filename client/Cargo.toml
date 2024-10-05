@@ -11,3 +11,4 @@ tungstenite = {version = "0.24.0", features = ["url"]}
 dict = "0.1.5"
 url = "2.5.2"
 log = "0.4.22"
+sysinfo = "0.31.4"
