@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
-use log::{error, warn, LevelFilter};
+use log::{error, info, warn, LevelFilter};
 use serde::Deserialize;
 use crate::commands_executor::CommandsExecutor;
 use crate::processes_watcher::{BlacklistFilter, ProcessesFilter, ProcessesWatcher};
@@ -52,13 +52,17 @@ fn main() {
     });
 
     loop {
-        let mut server_api = ServerApi::new("ws://localhost:8000/client/socket").unwrap();
-        while server_api.alive {
-            let mut command = server_api.next_command().unwrap();
-            if let Err(err) = executor.handle(&command.command, &mut command.data) {
-                error!("{}", err)
+        match ServerApi::new("ws://localhost:8000/client/socket") {
+            Err(err) => error!("{}", err),
+            Ok(mut server_api) => {
+                info!("Client connected to server successfully");
+                while server_api.alive {
+                    let mut command = server_api.next_command().unwrap();
+                    if let Err(err) = executor.handle(&command.command, &mut command.data) {
+                        error!("{}", err)
+                    }
+                }
             }
         }
     }
-
 }
