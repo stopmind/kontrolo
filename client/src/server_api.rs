@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::net::TcpStream;
 use std::str::FromStr;
+use log::info;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tungstenite::{connect, Message, WebSocket};
@@ -13,6 +14,19 @@ pub struct Command {
     pub data: Value
 }
 
+#[derive(Deserialize, Serialize)]
+struct HelloMessage {
+    mac: String
+}
+
+impl HelloMessage {
+    fn new() -> HelloMessage {
+        HelloMessage {
+            mac: String::from("test mac")
+        }
+    }
+}
+
 pub struct ServerApi {
     socket: WebSocket<MaybeTlsStream<TcpStream>>,
     pub alive: bool
@@ -23,7 +37,8 @@ impl ServerApi {
         let url = Url::from_str(url)?;
         let (mut socket, _) = connect(&url)?;
 
-        if let Err(err) = socket.send(Message::Text(String::from("HELLO"))) {
+        let hello_message = serde_json::to_string(&HelloMessage::new())?;
+        if let Err(err) = socket.send(Message::Text(hello_message)) {
             let _ = socket.close(None);
             return Err(err.into())
         }

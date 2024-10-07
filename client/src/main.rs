@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -56,13 +57,22 @@ fn main() {
             Err(err) => error!("{}", err),
             Ok(mut server_api) => {
                 info!("Client connected to server successfully");
-                while server_api.alive {
-                    let mut command = server_api.next_command().unwrap();
-                    if let Err(err) = executor.handle(&command.command, &mut command.data) {
-                        error!("{}", err)
-                    }
+                let result = process_commands(server_api, &executor);
+                if let Err(err) = result {
+                    error!("{}", err)
                 }
             }
         }
     }
+}
+
+fn process_commands(mut server_api: ServerApi, executor: &CommandsExecutor) -> Result<(), Box<dyn Error>> {
+    while server_api.alive {
+        let mut command = server_api.next_command()?;
+        if let Err(err) = executor.handle(&command.command, &mut command.data) {
+            error!("{}", err)
+        }
+    }
+
+    Ok(())
 }

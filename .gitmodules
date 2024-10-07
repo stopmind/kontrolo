@@ -1,0 +1,3 @@
+[submodule "go-wol"]
+	path = go-wol
+	url = https://github.com/sabhiram/go-wol
