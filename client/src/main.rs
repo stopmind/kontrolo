@@ -7,12 +7,14 @@ use std::time::Duration;
 use log::{error, info, warn, LevelFilter};
 use serde::Deserialize;
 use crate::commands_executor::CommandsExecutor;
+use crate::config::Config;
 use crate::processes_watcher::{BlacklistFilter, ProcessesFilter, ProcessesWatcher};
 use crate::server_api::ServerApi;
 
 mod commands_executor;
 mod server_api;
 mod processes_watcher;
+mod config;
 
 #[derive(Deserialize)]
 struct FilterInfo {
@@ -25,6 +27,8 @@ fn main() {
     env_logger::builder()
         .filter_level(LevelFilter::Info)
         .init();
+
+    let config = Config::read("./config.toml").unwrap();
 
     let processes_watcher = Arc::new(Mutex::new(ProcessesWatcher::new()));
 
@@ -52,8 +56,9 @@ fn main() {
         }
     });
 
+    let socket_address = format!("ws://{}/client/socket", config.address);
     loop {
-        match ServerApi::new("ws://localhost:8000/client/socket") {
+        match ServerApi::new(socket_address.as_str()) {
             Err(err) => error!("{}", err),
             Ok(mut server_api) => {
                 info!("Client connected to server successfully");
