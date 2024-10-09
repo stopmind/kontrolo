@@ -48,6 +48,9 @@ class Client:
     async def set_filter(self, filter: ProcessesFilter):
         await self._send("processes-watcher-set-filter", filter.to_dict())
 
+    async def shutdown(self):
+        await self._send("shutdown", None)
+
     async def close(self):
         self.manager.remove_client(self.mac)
         await self.connection.close()

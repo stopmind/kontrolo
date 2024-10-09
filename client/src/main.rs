@@ -7,6 +7,7 @@ use std::time::Duration;
 use log::{error, info, warn, LevelFilter};
 use mac_address::{get_mac_address, MacAddressIterator};
 use serde::Deserialize;
+use system_shutdown::shutdown;
 use crate::commands_executor::CommandsExecutor;
 use crate::config::Config;
 use crate::processes_watcher::{BlacklistFilter, ProcessesFilter, ProcessesWatcher};
@@ -45,7 +46,14 @@ fn main() {
         }
     });
 
+
     let mut executor = CommandsExecutor::new();
+
+    executor.add_handler(String::from("shutdown"), || {
+        if let Err(err) = shutdown() {
+            error!("{}", err);
+        }
+    });
 
     executor.add_handler_with_data(String::from("processes-watcher-set-filter"), |info: FilterInfo| {
         let mut watcher = processes_watcher.lock().unwrap();

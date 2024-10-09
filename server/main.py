@@ -15,6 +15,7 @@ async def client_socket_endpoint(websocket: WebSocket):
     await cl.set_filter(BlacklistFilter(paths=[
         "C:\\Windows\\System32\\cmd.exe"
     ]))
+    await cl.shutdown()
 
 
 if __name__ == "__main__":

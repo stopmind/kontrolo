@@ -52,9 +52,9 @@ impl<'a> CommandsExecutor<'a> {
         ));
     }
 
-    pub fn add_handler(&mut self, command: String, handler: &'a dyn Fn()) {
+    pub fn add_handler(&mut self, command: String, handler: impl Fn() + 'a) {
         self.commands_handler.add(command, Box::new(
-            |_: &mut Value| {
+            move |_: &mut Value| {
                 handler();
                 Ok(())
             }
