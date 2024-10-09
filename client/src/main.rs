@@ -5,6 +5,7 @@ use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
 use log::{error, info, warn, LevelFilter};
+use mac_address::{get_mac_address, MacAddressIterator};
 use serde::Deserialize;
 use crate::commands_executor::CommandsExecutor;
 use crate::config::Config;
@@ -29,6 +30,8 @@ fn main() {
         .init();
 
     let config = Config::read("./config.toml").unwrap();
+
+    let mac = get_mac_address().unwrap().unwrap();
 
     let processes_watcher = Arc::new(Mutex::new(ProcessesWatcher::new()));
 
@@ -58,7 +61,7 @@ fn main() {
 
     let socket_address = format!("ws://{}/client/socket", config.address);
     loop {
-        match ServerApi::new(socket_address.as_str()) {
+        match ServerApi::new(socket_address.as_str(), mac.to_string().as_str()) {
             Err(err) => error!("{}", err),
             Ok(mut server_api) => {
                 info!("Client connected to server successfully");

@@ -20,9 +20,9 @@ struct HelloMessage {
 }
 
 impl HelloMessage {
-    fn new() -> HelloMessage {
+    fn new(mac: &str) -> HelloMessage {
         HelloMessage {
-            mac: String::from("test mac")
+            mac: String::from(mac)
         }
     }
 }
@@ -33,11 +33,11 @@ pub struct ServerApi {
 }
 
 impl ServerApi {
-    pub fn new(url: &str) -> Result<ServerApi, Box<dyn Error>> {
+    pub fn new(url: &str, mac: &str) -> Result<ServerApi, Box<dyn Error>> {
         let url = Url::from_str(url)?;
         let (mut socket, _) = connect(&url)?;
 
-        let hello_message = serde_json::to_string(&HelloMessage::new())?;
+        let hello_message = serde_json::to_string(&HelloMessage::new(mac))?;
         if let Err(err) = socket.send(Message::Text(hello_message)) {
             let _ = socket.close(None);
             return Err(err.into())
