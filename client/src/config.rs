@@ -8,7 +8,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn read(path: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn read(path: String) -> Result<Self, Box<dyn Error>> {
         let content = fs::read_to_string(path)?;
         Ok(toml::from_str::<Config>(content.as_str())?)
     }

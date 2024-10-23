@@ -51,20 +51,17 @@ class Client:
     async def shutdown(self):
         await self._send("shutdown", None)
 
-    async def scripts_new(self, name: str):
-        await self._send("scripts-new", name)
-
-    async def scripts_run(self, name: str):
-        await self._send("scripts-run", name)
-
-    async def scripts_set(self, name: str, content: str):
-        await self._send("scripts-set", {
-            "name": name,
+    async def scripts_update(self, id: str, content: str):
+        await self._send("scripts-update", {
+            "id": id,
             "content": content
         })
 
-    async def scripts_remove(self, name: str):
-        await self._send("scripts-set", name)
+    async def scripts_exec(self, id: str):
+        await self._send("scripts-exec", id)
+
+    async def scripts_remove(self, id: str):
+        await self._send("scripts-remove", id)
 
     async def close(self):
         self.manager.remove_client(self.mac)
